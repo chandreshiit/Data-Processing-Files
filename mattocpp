@@ -1,0 +1,88 @@
+#include "mat.h"
+#include <iostream>
+#include <vector>
+#include<armadillo>
+using namespace arma;
+using namespace std;
+void matread(const char *file, umat&locations, vec & values, vec&y)
+{
+    // open MAT-file
+    MATFile *pmat = matOpen(file, "r");
+    if (pmat == NULL) return;
+
+    // extract the specified variable
+    mxArray *arr = matGetVariable(pmat, "data");
+    if (arr != NULL && mxIsDouble(arr) && !mxIsEmpty(arr)) {
+        // copy data
+        mwSize num = mxGetNumberOfElements(arr);
+        double *pr = mxGetPr(arr);
+        // first find the dim of the data
+        int sample_size = mxGetM(arr);
+        int cols        =mxGetN(arr);
+         mwIndex *irs=mxGetIr(arr);
+         mwIndex *jcs=mxGetJc(arr);
+        mwSize element  = *(&jcs[0]+cols);
+         
+        // allocate memory to locations,values and y
+       cout<<sample_size<<","<<cols<<", nnz: "<<element<<endl;// actual no. of nonzeros is stored in last column of jc array
+        locations.set_size(2,element); //adding bias
+        values.set_size(element);
+        uword i=0;
+        for(;i<sample_size;i++){
+        	locations(0,i)=i;
+            locations(1,i)=0;
+            values(i)=1;
+
+        }
+       y.set_size(sample_size);
+       
+      double *prs=mxGetPr(arr);
+     // cout<<"y:"<<endl;
+      for(uword j=0;j<sample_size;j++) 
+       {
+            y(j) = *prs;
+            prs++;
+       }
+       
+      
+     for(uword j=1;j<cols;j++)
+     {
+      for(i=1;i<=(jcs[j+1]-jcs[j]);i++)
+      {
+            locations(0,jcs[j]-1+i) =*(irs+sample_size); 
+            irs++;
+            locations(1,jcs[j]-1+i) = j;
+                    
+            values(jcs[j]-1+i) = *prs;
+            prs++;
+      
+      }
+     }   
+         
+         
+    } 
+      
+    
+
+    // cleanup
+    mxDestroyArray(arr);
+    matClose(pmat);
+}
+
+int main()
+{
+   // std::vector<double> v;
+    umat loc;
+    vec val;
+    vec y;
+    
+    matread("mydata.mat", loc,val,y);
+   // y.print();
+    
+    sp_mat m(loc,val);
+   // m.print();
+    cout<<y(0)<<endl;;
+   // for (size_t i=0; i<v.size(); ++i)
+   //     std::cout << v[i] << std::endl;
+    return 0;
+}
