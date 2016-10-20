@@ -2,6 +2,8 @@
 # Contact: ckm.jnu@gmail.com
 import sys
 
+import sys
+
 if(len(sys.argv) < 3):
     print("usage: ./python convertToSVM.py inputfilename outputfilename")
 #print sys.argv[1]
@@ -25,9 +27,15 @@ for line in lines:
               resultLine += dataList[-1].strip()
               resultLine += ' '
               for i in range(0,len(dataList)-1):
-                  resultLine += str(i)
+                  resultLine += str(i+1)
                   resultLine += (":"+dataList[i].strip()+" ")
-              print(resultLine)
+#==============================================================================
+#               print(resultLine)
+#==============================================================================
               fout.write(resultLine+"\n")
-     if line.find('@DATA') >=0 :
+     if line.find('@DATA') >=0 or line.find('@data') >=0 :
          beginToRead = True
+#==============================================================================
+#==============================================================================
+
+
